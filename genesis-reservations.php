@@ -215,23 +215,81 @@ function gr_shortcode( $atts ) {
         $count   = count( $results );
         ?>
 
-        <?php if ( ! $is_admin ) : ?>
         <div class="gr-attendees">
             <h3 class="gr-attendees-title">
-                <?php esc_html_e( 'Attending', 'genesis-reservations' ); ?>
+                <?php
+                if ( $is_admin ) {
+                    printf(
+                        esc_html__( 'Reservations%s', 'genesis-reservations' ),
+                        $event_name ? ': ' . esc_html( $event_name ) : ''
+                    );
+                } else {
+                    esc_html_e( 'Attending', 'genesis-reservations' );
+                }
+                ?>
                 <span class="gr-admin-count">(<?php echo $count; ?>)</span>
             </h3>
+
             <?php if ( $results ) : ?>
-            <ul class="gr-attendees-list">
-                <?php foreach ( $results as $row ) : ?>
-                <li><?php echo esc_html( $row->first_name . ' ' . strtoupper( substr( $row->last_name, 0, 1 ) ) . '.' ); ?></li>
-                <?php endforeach; ?>
-            </ul>
+            <div class="gr-table-wrap">
+                <table class="gr-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th><?php esc_html_e( 'Name', 'genesis-reservations' ); ?></th>
+                            <?php if ( $is_admin ) : ?>
+                            <th><?php esc_html_e( 'First Name', 'genesis-reservations' ); ?></th>
+                            <th><?php esc_html_e( 'Last Name', 'genesis-reservations' ); ?></th>
+                            <th><?php esc_html_e( 'Email', 'genesis-reservations' ); ?></th>
+                            <th><?php esc_html_e( 'Actions', 'genesis-reservations' ); ?></th>
+                            <?php endif; ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ( $results as $i => $row ) : ?>
+                        <?php if ( $is_admin && $edit_row === (int) $row->id ) : ?>
+                        <tr class="gr-edit-row">
+                            <td><?php echo $i + 1; ?></td>
+                            <td><?php echo esc_html( $row->first_name . ' ' . strtoupper( substr( $row->last_name, 0, 1 ) ) . '.' ); ?></td>
+                            <td colspan="3">
+                                <form method="post" class="gr-inline-edit-form">
+                                    <?php wp_nonce_field( 'gr_edit_reservation', 'gr_edit_nonce' ); ?>
+                                    <input type="hidden" name="gr_edit_id" value="<?php echo esc_attr( $row->id ); ?>" />
+                                    <input type="text" name="gr_edit_first_name" value="<?php echo esc_attr( $row->first_name ); ?>" placeholder="<?php esc_attr_e( 'First Name', 'genesis-reservations' ); ?>" required />
+                                    <input type="text" name="gr_edit_last_name" value="<?php echo esc_attr( $row->last_name ); ?>" placeholder="<?php esc_attr_e( 'Last Name', 'genesis-reservations' ); ?>" required />
+                                    <input type="email" name="gr_edit_email" value="<?php echo esc_attr( $row->email ); ?>" placeholder="<?php esc_attr_e( 'Email', 'genesis-reservations' ); ?>" required />
+                                    <button type="submit" class="gr-btn gr-btn--save"><?php esc_html_e( 'Save', 'genesis-reservations' ); ?></button>
+                                    <a href="<?php echo esc_url( remove_query_arg( 'gr_edit' ) ); ?>" class="gr-btn gr-btn--cancel"><?php esc_html_e( 'Cancel', 'genesis-reservations' ); ?></a>
+                                </form>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <?php else : ?>
+                        <tr>
+                            <td><?php echo $i + 1; ?></td>
+                            <td><?php echo esc_html( $row->first_name . ' ' . strtoupper( substr( $row->last_name, 0, 1 ) ) . '.' ); ?></td>
+                            <?php if ( $is_admin ) : ?>
+                            <td><?php echo esc_html( $row->first_name ); ?></td>
+                            <td><?php echo esc_html( $row->last_name ); ?></td>
+                            <td><?php echo esc_html( $row->email ); ?></td>
+                            <td class="gr-actions">
+                                <a href="<?php echo esc_url( add_query_arg( 'gr_edit', $row->id ) ); ?>" class="gr-btn gr-btn--edit"><?php esc_html_e( 'Edit', 'genesis-reservations' ); ?></a>
+                                <a href="<?php echo esc_url( add_query_arg( [ 'gr_delete' => $row->id, 'gr_delete_nonce' => wp_create_nonce( 'gr_delete_' . $row->id ) ] ) ); ?>"
+                                   class="gr-btn gr-btn--delete"
+                                   onclick="return confirm('<?php esc_attr_e( 'Delete this reservation?', 'genesis-reservations' ); ?>')"
+                                ><?php esc_html_e( 'Delete', 'genesis-reservations' ); ?></a>
+                            </td>
+                            <?php endif; ?>
+                        </tr>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
             <?php else : ?>
                 <p class="gr-no-results"><?php esc_html_e( 'No reservations yet.', 'genesis-reservations' ); ?></p>
             <?php endif; ?>
         </div>
-        <?php endif; ?>
 
         <?php if ( ! $message ) : ?>
         <form class="gr-form" method="post">
@@ -262,82 +320,6 @@ function gr_shortcode( $atts ) {
         </form>
         <?php endif; ?>
 
-        <?php if ( $is_admin ) : ?>
-        <div class="gr-admin-panel">
-            <h3 class="gr-admin-title">
-                <?php
-                printf(
-                    esc_html__( 'Reservations%s', 'genesis-reservations' ),
-                    $event_name ? ': ' . esc_html( $event_name ) : ''
-                );
-                ?>
-                <span class="gr-admin-count">(<?php echo $count; ?>)</span>
-            </h3>
-
-            <?php if ( $results ) : ?>
-            <div class="gr-table-wrap">
-                <table class="gr-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th><?php esc_html_e( 'Name', 'genesis-reservations' ); ?></th>
-                            <th><?php esc_html_e( 'Email', 'genesis-reservations' ); ?></th>
-                            <th><?php esc_html_e( 'Event', 'genesis-reservations' ); ?></th>
-                            <th><?php esc_html_e( 'Time', 'genesis-reservations' ); ?></th>
-                            <th><?php esc_html_e( 'Place', 'genesis-reservations' ); ?></th>
-                            <th><?php esc_html_e( 'Date', 'genesis-reservations' ); ?></th>
-                            <th><?php esc_html_e( 'Actions', 'genesis-reservations' ); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ( $results as $row ) : ?>
-                        <?php if ( $edit_row === (int) $row->id ) : ?>
-                        <tr class="gr-edit-row">
-                            <td><?php echo esc_html( $row->id ); ?></td>
-                            <td colspan="2">
-                                <form method="post" class="gr-inline-edit-form">
-                                    <?php wp_nonce_field( 'gr_edit_reservation', 'gr_edit_nonce' ); ?>
-                                    <input type="hidden" name="gr_edit_id" value="<?php echo esc_attr( $row->id ); ?>" />
-                                    <input type="text" name="gr_edit_first_name" value="<?php echo esc_attr( $row->first_name ); ?>" placeholder="<?php esc_attr_e( 'First Name', 'genesis-reservations' ); ?>" required />
-                                    <input type="text" name="gr_edit_last_name" value="<?php echo esc_attr( $row->last_name ); ?>" placeholder="<?php esc_attr_e( 'Last Name', 'genesis-reservations' ); ?>" required />
-                                    <input type="email" name="gr_edit_email" value="<?php echo esc_attr( $row->email ); ?>" placeholder="<?php esc_attr_e( 'Email', 'genesis-reservations' ); ?>" required />
-                                    <button type="submit" class="gr-btn gr-btn--save"><?php esc_html_e( 'Save', 'genesis-reservations' ); ?></button>
-                                    <a href="<?php echo esc_url( remove_query_arg( 'gr_edit' ) ); ?>" class="gr-btn gr-btn--cancel"><?php esc_html_e( 'Cancel', 'genesis-reservations' ); ?></a>
-                                </form>
-                            </td>
-                            <td><?php echo esc_html( $row->event_name ); ?></td>
-                            <td><?php echo esc_html( $row->event_time ); ?></td>
-                            <td><?php echo esc_html( $row->event_place ); ?></td>
-                            <td><?php echo esc_html( gmdate( 'Y-m-d H:i', strtotime( $row->created_at ) ) ); ?></td>
-                            <td></td>
-                        </tr>
-                        <?php else : ?>
-                        <tr>
-                            <td><?php echo esc_html( $row->id ); ?></td>
-                            <td><?php echo esc_html( $row->first_name . ' ' . $row->last_name ); ?></td>
-                            <td><?php echo esc_html( $row->email ); ?></td>
-                            <td><?php echo esc_html( $row->event_name ); ?></td>
-                            <td><?php echo esc_html( $row->event_time ); ?></td>
-                            <td><?php echo esc_html( $row->event_place ); ?></td>
-                            <td><?php echo esc_html( gmdate( 'Y-m-d H:i', strtotime( $row->created_at ) ) ); ?></td>
-                            <td class="gr-actions">
-                                <a href="<?php echo esc_url( add_query_arg( 'gr_edit', $row->id ) ); ?>" class="gr-btn gr-btn--edit"><?php esc_html_e( 'Edit', 'genesis-reservations' ); ?></a>
-                                <a href="<?php echo esc_url( add_query_arg( [ 'gr_delete' => $row->id, 'gr_delete_nonce' => wp_create_nonce( 'gr_delete_' . $row->id ) ] ) ); ?>"
-                                   class="gr-btn gr-btn--delete"
-                                   onclick="return confirm('<?php esc_attr_e( 'Delete this reservation?', 'genesis-reservations' ); ?>')"
-                                ><?php esc_html_e( 'Delete', 'genesis-reservations' ); ?></a>
-                            </td>
-                        </tr>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <?php else : ?>
-                <p class="gr-no-results"><?php esc_html_e( 'No reservations yet.', 'genesis-reservations' ); ?></p>
-            <?php endif; ?>
-        </div>
-        <?php endif; // is_admin ?>
 
     </div>
     <?php
