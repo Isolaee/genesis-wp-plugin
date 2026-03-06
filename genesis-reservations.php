@@ -215,7 +215,7 @@ function gr_shortcode( $atts ) {
         $count   = count( $results );
         ?>
 
-        <?php if ( $count > 1 && ! $is_admin ) : ?>
+        <?php if ( $count >= 1 && ! $is_admin ) : ?>
         <div class="gr-attendees">
             <h3 class="gr-attendees-title">
                 <?php esc_html_e( 'Attending', 'genesis-reservations' ); ?>
