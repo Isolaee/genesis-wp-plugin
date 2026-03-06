@@ -1,8 +1,9 @@
 ---
 deployment:
   tasks:
-    # Copy plugin files to WordPress plugins directory
-    - export PLUGIN_DIR=$HOME/public_html/wp-content/plugins/genesis-reservations
-    - mkdir -p $PLUGIN_DIR
-    - cp -r $HOME/repository/genesis-wp-plugin/genesis-reservations.php $PLUGIN_DIR/
-    - cp -r $HOME/repository/genesis-wp-plugin/assets $PLUGIN_DIR/
+    - export DEPLOYPATH=/home/growthrocket2/public_html/wp-content/plugins/genesis-reservations
+    - test -d "$(dirname $DEPLOYPATH)" || exit 1
+    - mkdir -p $DEPLOYPATH
+    - /bin/cp -R genesis-reservations.php assets $DEPLOYPATH/
+    - find $DEPLOYPATH -type f -exec chmod 644 {} \;
+    - find $DEPLOYPATH -type d -exec chmod 755 {} \;
