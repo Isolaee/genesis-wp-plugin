@@ -197,12 +197,12 @@ function gr_shortcode( $atts ) {
         <?php endif; ?>
 
         <?php
-        // ---- Admin view: list all reservations for this event ----
-        if ( $is_admin ) :
-            global $wpdb;
-            $table = $wpdb->prefix . GR_TABLE_NAME;
+        // ---- Attendee list (visible to everyone) ----
+        global $wpdb;
+        $table = $wpdb->prefix . GR_TABLE_NAME;
 
-            // Handle inline edit
+        // Admin-only: handle inline edit
+        if ( $is_admin ) :
             if (
                 isset( $_POST['gr_edit_nonce'] ) &&
                 wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['gr_edit_nonce'] ) ), 'gr_edit_reservation' )
@@ -227,25 +227,27 @@ function gr_shortcode( $atts ) {
                 }
             }
 
-            // Handle delete
+            // Admin-only: handle delete
             if (
                 isset( $_GET['gr_delete'] ) && isset( $_GET['gr_delete_nonce'] ) &&
                 wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['gr_delete_nonce'] ) ), 'gr_delete_' . absint( $_GET['gr_delete'] ) )
             ) {
                 $wpdb->delete( $table, [ 'id' => absint( $_GET['gr_delete'] ) ], [ '%d' ] );
             }
+        endif;
 
-            $edit_row = isset( $_GET['gr_edit'] ) ? absint( $_GET['gr_edit'] ) : 0;
+        $edit_row = $is_admin && isset( $_GET['gr_edit'] ) ? absint( $_GET['gr_edit'] ) : 0;
 
-            $where   = $event_name ? $wpdb->prepare( 'WHERE event_name = %s', $event_name ) : '';
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            $results = $wpdb->get_results( "SELECT * FROM {$table} {$where} ORDER BY created_at DESC" );
+        $where   = $event_name ? $wpdb->prepare( 'WHERE event_name = %s', $event_name ) : '';
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $results = $wpdb->get_results( "SELECT * FROM {$table} {$where} ORDER BY created_at DESC" );
         ?>
+
+        <?php if ( $is_admin ) : ?>
         <div class="gr-admin-panel">
             <h3 class="gr-admin-title">
                 <?php
                 printf(
-                    /* translators: %s event name */
                     esc_html__( 'Reservations%s', 'genesis-reservations' ),
                     $event_name ? ': ' . esc_html( $event_name ) : ''
                 );
@@ -316,7 +318,26 @@ function gr_shortcode( $atts ) {
                 <p class="gr-no-results"><?php esc_html_e( 'No reservations yet.', 'genesis-reservations' ); ?></p>
             <?php endif; ?>
         </div>
-        <?php endif; // is_admin ?>
+
+        <?php else : ?>
+
+        <div class="gr-attendees">
+            <h3 class="gr-attendees-title">
+                <?php esc_html_e( 'Attending', 'genesis-reservations' ); ?>
+                <span class="gr-admin-count">(<?php echo count( $results ); ?>)</span>
+            </h3>
+            <?php if ( $results ) : ?>
+            <ul class="gr-attendees-list">
+                <?php foreach ( $results as $row ) : ?>
+                <li><?php echo esc_html( $row->first_name . ' ' . strtoupper( substr( $row->last_name, 0, 1 ) ) . '.' ); ?></li>
+                <?php endforeach; ?>
+            </ul>
+            <?php else : ?>
+                <p class="gr-no-results"><?php esc_html_e( 'No reservations yet. Be the first!', 'genesis-reservations' ); ?></p>
+            <?php endif; ?>
+        </div>
+
+        <?php endif; // end admin/public attendee list ?>
 
     </div>
     <?php

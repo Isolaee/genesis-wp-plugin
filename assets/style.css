@@ -246,6 +246,36 @@
     margin-bottom: 0.25rem;
 }
 
+/* ---- Public attendee list ---- */
+.gr-attendees {
+    margin-top: 2rem;
+    border-top: 2px solid #dcdcde;
+    padding-top: 1.25rem;
+}
+
+.gr-attendees-title {
+    font-size: 1.05rem;
+    color: #1d2327;
+    margin: 0 0 0.75rem;
+}
+
+.gr-attendees-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.75rem;
+}
+
+.gr-attendees-list li {
+    background: #f0f0f1;
+    border-radius: 20px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.9rem;
+    color: #1d2327;
+}
+
 .gr-no-results {
     color: #50575e;
     font-style: italic;
