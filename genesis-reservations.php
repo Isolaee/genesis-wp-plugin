@@ -167,37 +167,8 @@ function gr_shortcode( $atts ) {
             <div class="gr-notice gr-notice--error"><?php echo esc_html( $error ); ?></div>
         <?php endif; ?>
 
-        <?php if ( ! $message ) : ?>
-        <form class="gr-form" method="post">
-            <?php wp_nonce_field( 'gr_reservation_' . $event_name, 'gr_nonce' ); ?>
-
-            <div class="gr-field">
-                <label for="gr_first_name"><?php echo esc_html( $texts['label_first_name'] ); ?> <span aria-hidden="true">*</span></label>
-                <input type="text" id="gr_first_name" name="gr_first_name"
-                    value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_first_name'] ?? '' ) ) ); ?>"
-                    required autocomplete="given-name" />
-            </div>
-
-            <div class="gr-field">
-                <label for="gr_last_name"><?php echo esc_html( $texts['label_last_name'] ); ?> <span aria-hidden="true">*</span></label>
-                <input type="text" id="gr_last_name" name="gr_last_name"
-                    value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_last_name'] ?? '' ) ) ); ?>"
-                    required autocomplete="family-name" />
-            </div>
-
-            <div class="gr-field">
-                <label for="gr_email"><?php echo esc_html( $texts['label_email'] ); ?> <span aria-hidden="true">*</span></label>
-                <input type="email" id="gr_email" name="gr_email"
-                    value="<?php echo esc_attr( sanitize_email( wp_unslash( $_POST['gr_email'] ?? '' ) ) ); ?>"
-                    required autocomplete="email" />
-            </div>
-
-            <button type="submit" class="gr-submit"><?php echo esc_html( $texts['btn_submit'] ); ?></button>
-        </form>
-        <?php endif; ?>
-
         <?php
-        // ---- Attendee list (visible to everyone) ----
+        // ---- Fetch attendees (always, before form) ----
         global $wpdb;
         $table = $wpdb->prefix . GR_TABLE_NAME;
 
@@ -241,7 +212,51 @@ function gr_shortcode( $atts ) {
         $where   = $event_name ? $wpdb->prepare( 'WHERE event_name = %s', $event_name ) : '';
         // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $results = $wpdb->get_results( "SELECT * FROM {$table} {$where} ORDER BY created_at DESC" );
+        $count   = count( $results );
         ?>
+
+        <?php if ( $count > 1 && ! $is_admin ) : ?>
+        <div class="gr-attendees">
+            <h3 class="gr-attendees-title">
+                <?php esc_html_e( 'Attending', 'genesis-reservations' ); ?>
+                <span class="gr-admin-count">(<?php echo $count; ?>)</span>
+            </h3>
+            <ul class="gr-attendees-list">
+                <?php foreach ( $results as $row ) : ?>
+                <li><?php echo esc_html( $row->first_name . ' ' . strtoupper( substr( $row->last_name, 0, 1 ) ) . '.' ); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <?php endif; ?>
+
+        <?php if ( ! $message ) : ?>
+        <form class="gr-form" method="post">
+            <?php wp_nonce_field( 'gr_reservation_' . $event_name, 'gr_nonce' ); ?>
+
+            <div class="gr-field">
+                <label for="gr_first_name"><?php echo esc_html( $texts['label_first_name'] ); ?> <span aria-hidden="true">*</span></label>
+                <input type="text" id="gr_first_name" name="gr_first_name"
+                    value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_first_name'] ?? '' ) ) ); ?>"
+                    required autocomplete="given-name" />
+            </div>
+
+            <div class="gr-field">
+                <label for="gr_last_name"><?php echo esc_html( $texts['label_last_name'] ); ?> <span aria-hidden="true">*</span></label>
+                <input type="text" id="gr_last_name" name="gr_last_name"
+                    value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_last_name'] ?? '' ) ) ); ?>"
+                    required autocomplete="family-name" />
+            </div>
+
+            <div class="gr-field">
+                <label for="gr_email"><?php echo esc_html( $texts['label_email'] ); ?> <span aria-hidden="true">*</span></label>
+                <input type="email" id="gr_email" name="gr_email"
+                    value="<?php echo esc_attr( sanitize_email( wp_unslash( $_POST['gr_email'] ?? '' ) ) ); ?>"
+                    required autocomplete="email" />
+            </div>
+
+            <button type="submit" class="gr-submit"><?php echo esc_html( $texts['btn_submit'] ); ?></button>
+        </form>
+        <?php endif; ?>
 
         <?php if ( $is_admin ) : ?>
         <div class="gr-admin-panel">
@@ -252,7 +267,7 @@ function gr_shortcode( $atts ) {
                     $event_name ? ': ' . esc_html( $event_name ) : ''
                 );
                 ?>
-                <span class="gr-admin-count">(<?php echo count( $results ); ?>)</span>
+                <span class="gr-admin-count">(<?php echo $count; ?>)</span>
             </h3>
 
             <?php if ( $results ) : ?>
@@ -318,26 +333,7 @@ function gr_shortcode( $atts ) {
                 <p class="gr-no-results"><?php esc_html_e( 'No reservations yet.', 'genesis-reservations' ); ?></p>
             <?php endif; ?>
         </div>
-
-        <?php else : ?>
-
-        <div class="gr-attendees">
-            <h3 class="gr-attendees-title">
-                <?php esc_html_e( 'Attending', 'genesis-reservations' ); ?>
-                <span class="gr-admin-count">(<?php echo count( $results ); ?>)</span>
-            </h3>
-            <?php if ( $results ) : ?>
-            <ul class="gr-attendees-list">
-                <?php foreach ( $results as $row ) : ?>
-                <li><?php echo esc_html( $row->first_name . ' ' . strtoupper( substr( $row->last_name, 0, 1 ) ) . '.' ); ?></li>
-                <?php endforeach; ?>
-            </ul>
-            <?php else : ?>
-                <p class="gr-no-results"><?php esc_html_e( 'No reservations yet. Be the first!', 'genesis-reservations' ); ?></p>
-            <?php endif; ?>
-        </div>
-
-        <?php endif; // end admin/public attendee list ?>
+        <?php endif; // is_admin ?>
 
     </div>
     <?php
