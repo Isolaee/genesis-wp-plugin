@@ -215,6 +215,35 @@ function gr_shortcode( $atts ) {
         $count   = count( $results );
         ?>
 
+        <?php if ( ! $message ) : ?>
+        <form class="gr-form" method="post">
+            <?php wp_nonce_field( 'gr_reservation_' . $event_name, 'gr_nonce' ); ?>
+
+            <div class="gr-field">
+                <label for="gr_first_name"><?php echo esc_html( $texts['label_first_name'] ); ?> <span aria-hidden="true">*</span></label>
+                <input type="text" id="gr_first_name" name="gr_first_name"
+                    value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_first_name'] ?? '' ) ) ); ?>"
+                    required autocomplete="given-name" />
+            </div>
+
+            <div class="gr-field">
+                <label for="gr_last_name"><?php echo esc_html( $texts['label_last_name'] ); ?> <span aria-hidden="true">*</span></label>
+                <input type="text" id="gr_last_name" name="gr_last_name"
+                    value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_last_name'] ?? '' ) ) ); ?>"
+                    required autocomplete="family-name" />
+            </div>
+
+            <div class="gr-field">
+                <label for="gr_email"><?php echo esc_html( $texts['label_email'] ); ?> <span aria-hidden="true">*</span></label>
+                <input type="email" id="gr_email" name="gr_email"
+                    value="<?php echo esc_attr( sanitize_email( wp_unslash( $_POST['gr_email'] ?? '' ) ) ); ?>"
+                    required autocomplete="email" />
+            </div>
+
+            <button type="submit" class="gr-submit"><?php echo esc_html( $texts['btn_submit'] ); ?></button>
+        </form>
+        <?php endif; ?>
+
         <div class="gr-attendees">
             <h3 class="gr-attendees-title">
                 <?php
@@ -290,36 +319,6 @@ function gr_shortcode( $atts ) {
                 <p class="gr-no-results"><?php esc_html_e( 'No reservations yet.', 'genesis-reservations' ); ?></p>
             <?php endif; ?>
         </div>
-
-        <?php if ( ! $message ) : ?>
-        <form class="gr-form" method="post">
-            <?php wp_nonce_field( 'gr_reservation_' . $event_name, 'gr_nonce' ); ?>
-
-            <div class="gr-field">
-                <label for="gr_first_name"><?php echo esc_html( $texts['label_first_name'] ); ?> <span aria-hidden="true">*</span></label>
-                <input type="text" id="gr_first_name" name="gr_first_name"
-                    value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_first_name'] ?? '' ) ) ); ?>"
-                    required autocomplete="given-name" />
-            </div>
-
-            <div class="gr-field">
-                <label for="gr_last_name"><?php echo esc_html( $texts['label_last_name'] ); ?> <span aria-hidden="true">*</span></label>
-                <input type="text" id="gr_last_name" name="gr_last_name"
-                    value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_last_name'] ?? '' ) ) ); ?>"
-                    required autocomplete="family-name" />
-            </div>
-
-            <div class="gr-field">
-                <label for="gr_email"><?php echo esc_html( $texts['label_email'] ); ?> <span aria-hidden="true">*</span></label>
-                <input type="email" id="gr_email" name="gr_email"
-                    value="<?php echo esc_attr( sanitize_email( wp_unslash( $_POST['gr_email'] ?? '' ) ) ); ?>"
-                    required autocomplete="email" />
-            </div>
-
-            <button type="submit" class="gr-submit"><?php echo esc_html( $texts['btn_submit'] ); ?></button>
-        </form>
-        <?php endif; ?>
-
 
     </div>
     <?php
