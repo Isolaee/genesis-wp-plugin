@@ -149,10 +149,10 @@ function gr_shortcode( $atts ) {
             <?php endif; ?>
             <ul class="gr-event-meta">
                 <?php if ( $event_time ) : ?>
-                    <li><span class="gr-meta-label"><?php esc_html_e( 'Time:', 'genesis-reservations' ); ?></span> <?php echo esc_html( $event_time ); ?></li>
+                    <li><span class="gr-meta-label"><?php echo esc_html( $texts['label_time'] ); ?></span> <?php echo esc_html( $event_time ); ?></li>
                 <?php endif; ?>
                 <?php if ( $event_place ) : ?>
-                    <li><span class="gr-meta-label"><?php esc_html_e( 'Place:', 'genesis-reservations' ); ?></span> <?php echo esc_html( $event_place ); ?></li>
+                    <li><span class="gr-meta-label"><?php echo esc_html( $texts['label_place'] ); ?></span> <?php echo esc_html( $event_place ); ?></li>
                 <?php endif; ?>
             </ul>
             <?php if ( $event_desc ) : ?>
@@ -215,17 +215,21 @@ function gr_shortcode( $atts ) {
         $count   = count( $results );
         ?>
 
-        <?php if ( $count >= 1 && ! $is_admin ) : ?>
+        <?php if ( ! $is_admin ) : ?>
         <div class="gr-attendees">
             <h3 class="gr-attendees-title">
                 <?php esc_html_e( 'Attending', 'genesis-reservations' ); ?>
                 <span class="gr-admin-count">(<?php echo $count; ?>)</span>
             </h3>
+            <?php if ( $results ) : ?>
             <ul class="gr-attendees-list">
                 <?php foreach ( $results as $row ) : ?>
                 <li><?php echo esc_html( $row->first_name . ' ' . strtoupper( substr( $row->last_name, 0, 1 ) ) . '.' ); ?></li>
                 <?php endforeach; ?>
             </ul>
+            <?php else : ?>
+                <p class="gr-no-results"><?php esc_html_e( 'No reservations yet.', 'genesis-reservations' ); ?></p>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
 
