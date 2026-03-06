@@ -3,7 +3,7 @@
  * Plugin Name: Genesis Reservations
  * Plugin URI:  https://github.com/eero/genesis-wp-plugin
  * Description: Event reservation system via shortcode. Usage: [reservation event="My Event" time="7:00 PM" place="City Hall" description="Join us!"]
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      Eero Isola
  * License:     GPL-2.0-or-later
  * Text Domain: genesis-reservations
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'GR_VERSION', '1.0.0' );
+define( 'GR_VERSION', '1.1.0' );
 define( 'GR_TABLE_NAME', 'gr_reservations' );
 
 // ---------------------------------------------------------------------------
