@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Genesis Reservations
  * Plugin URI:  https://github.com/eero/genesis-wp-plugin
- * Description: Event reservation system via shortcode. Usage: [reservation event="My Event" time="7:00 PM" place="City Hall" description="Join us!"]
+ * Description: Event reservation system via shortcode. Usage: [reservation event="My Event" time="7:00 PM" place="City Hall" description="Join us!" max="50"]
  * Version:     1.1.0
  * Author:      Eero Isola
  * License:     GPL-2.0-or-later
@@ -79,12 +79,14 @@ function gr_shortcode( $atts ) {
         'time'        => '',
         'place'       => '',
         'description' => '',
+        'max'         => '',
     ], $atts, 'reservation' );
 
     $event_name  = sanitize_text_field( $atts['event'] );
     $event_time  = sanitize_text_field( $atts['time'] );
     $event_place = sanitize_text_field( $atts['place'] );
     $event_desc  = sanitize_textarea_field( $atts['description'] );
+    $max         = $atts['max'] !== '' ? absint( $atts['max'] ) : 0;
 
     ob_start();
 
@@ -102,11 +104,33 @@ function gr_shortcode( $atts ) {
 
         $texts = gr_texts();
 
-        if ( empty( $first_name ) || empty( $last_name ) || empty( $email ) ) {
+        // Check capacity before inserting
+        if ( $max > 0 ) {
+            global $wpdb;
+            $table        = $wpdb->prefix . GR_TABLE_NAME;
+            $current_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE event_name = %s", $event_name ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            if ( $current_count >= $max ) {
+                $error = $texts['msg_full'];
+            }
+        }
+
+        if ( ! $error && ( empty( $first_name ) || empty( $last_name ) || empty( $email ) ) ) {
             $error = $texts['msg_required'];
-        } elseif ( ! is_email( $email ) ) {
+        } elseif ( ! $error && ! is_email( $email ) ) {
             $error = $texts['msg_invalid_email'];
-        } else {
+        }
+
+        if ( ! $error ) {
+            global $wpdb;
+            $table = $wpdb->prefix . GR_TABLE_NAME;
+
+            $existing = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE event_name = %s AND email = %s", $event_name, $email ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            if ( $existing > 0 ) {
+                $error = $texts['msg_duplicate_email'];
+            }
+        }
+
+        if ( ! $error ) {
             global $wpdb;
             $table = $wpdb->prefix . GR_TABLE_NAME;
 
@@ -215,7 +239,13 @@ function gr_shortcode( $atts ) {
         $count   = count( $results );
         ?>
 
-        <?php if ( ! $message ) : ?>
+        <?php
+        $is_full = $max > 0 && $count >= $max;
+        ?>
+
+        <?php if ( $is_full && ! $message ) : ?>
+            <div class="gr-notice gr-notice--full"><?php esc_html_e( 'This event is full.', 'genesis-reservations' ); ?></div>
+        <?php elseif ( ! $message ) : ?>
         <form class="gr-form" method="post">
             <?php wp_nonce_field( 'gr_reservation_' . $event_name, 'gr_nonce' ); ?>
 
@@ -341,6 +371,8 @@ function gr_texts() {
         'msg_required'        => 'All fields are required.',
         'msg_invalid_email'   => 'Please enter a valid email address.',
         'msg_error'           => 'Something went wrong. Please try again.',
+        'msg_full'            => 'Sorry, this event is full.',
+        'msg_duplicate_email' => 'This email address already has a reservation for this event.',
     ];
     $saved = get_option( 'gr_texts', [] );
     return wp_parse_args( $saved, $defaults );
