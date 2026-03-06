@@ -100,10 +100,12 @@ function gr_shortcode( $atts ) {
         $last_name  = sanitize_text_field( wp_unslash( $_POST['gr_last_name'] ?? '' ) );
         $email      = sanitize_email( wp_unslash( $_POST['gr_email'] ?? '' ) );
 
+        $texts = gr_texts();
+
         if ( empty( $first_name ) || empty( $last_name ) || empty( $email ) ) {
-            $error = __( 'All fields are required.', 'genesis-reservations' );
+            $error = $texts['msg_required'];
         } elseif ( ! is_email( $email ) ) {
-            $error = __( 'Please enter a valid email address.', 'genesis-reservations' );
+            $error = $texts['msg_invalid_email'];
         } else {
             global $wpdb;
             $table = $wpdb->prefix . GR_TABLE_NAME;
@@ -123,18 +125,18 @@ function gr_shortcode( $atts ) {
             );
 
             if ( $result ) {
-                $message = sprintf(
-                    /* translators: %1$s first name, %2$s last initial */
-                    __( 'Thank you, %1$s %2$s.! Your reservation is confirmed.', 'genesis-reservations' ),
-                    esc_html( $first_name ),
-                    esc_html( strtoupper( substr( $last_name, 0, 1 ) ) )
+                $message = str_replace(
+                    [ '{first_name}', '{last_initial}' ],
+                    [ esc_html( $first_name ), esc_html( strtoupper( substr( $last_name, 0, 1 ) ) ) ],
+                    $texts['msg_success']
                 );
             } else {
-                $error = __( 'Something went wrong. Please try again.', 'genesis-reservations' );
+                $error = $texts['msg_error'];
             }
         }
     }
 
+    $texts    = gr_texts();
     $is_admin = current_user_can( 'manage_options' );
 
     ?>
@@ -170,27 +172,27 @@ function gr_shortcode( $atts ) {
             <?php wp_nonce_field( 'gr_reservation_' . $event_name, 'gr_nonce' ); ?>
 
             <div class="gr-field">
-                <label for="gr_first_name"><?php esc_html_e( 'First Name', 'genesis-reservations' ); ?> <span aria-hidden="true">*</span></label>
+                <label for="gr_first_name"><?php echo esc_html( $texts['label_first_name'] ); ?> <span aria-hidden="true">*</span></label>
                 <input type="text" id="gr_first_name" name="gr_first_name"
                     value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_first_name'] ?? '' ) ) ); ?>"
                     required autocomplete="given-name" />
             </div>
 
             <div class="gr-field">
-                <label for="gr_last_name"><?php esc_html_e( 'Last Name', 'genesis-reservations' ); ?> <span aria-hidden="true">*</span></label>
+                <label for="gr_last_name"><?php echo esc_html( $texts['label_last_name'] ); ?> <span aria-hidden="true">*</span></label>
                 <input type="text" id="gr_last_name" name="gr_last_name"
                     value="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_POST['gr_last_name'] ?? '' ) ) ); ?>"
                     required autocomplete="family-name" />
             </div>
 
             <div class="gr-field">
-                <label for="gr_email"><?php esc_html_e( 'Email Address', 'genesis-reservations' ); ?> <span aria-hidden="true">*</span></label>
+                <label for="gr_email"><?php echo esc_html( $texts['label_email'] ); ?> <span aria-hidden="true">*</span></label>
                 <input type="email" id="gr_email" name="gr_email"
                     value="<?php echo esc_attr( sanitize_email( wp_unslash( $_POST['gr_email'] ?? '' ) ) ); ?>"
                     required autocomplete="email" />
             </div>
 
-            <button type="submit" class="gr-submit"><?php esc_html_e( 'Reserve My Spot', 'genesis-reservations' ); ?></button>
+            <button type="submit" class="gr-submit"><?php echo esc_html( $texts['btn_submit'] ); ?></button>
         </form>
         <?php endif; ?>
 
@@ -323,6 +325,26 @@ function gr_shortcode( $atts ) {
 }
 
 // ---------------------------------------------------------------------------
+// Text customization helpers
+// ---------------------------------------------------------------------------
+function gr_texts() {
+    $defaults = [
+        'label_first_name'    => 'First Name',
+        'label_last_name'     => 'Last Name',
+        'label_email'         => 'Email Address',
+        'label_time'          => 'Time:',
+        'label_place'         => 'Place:',
+        'btn_submit'          => 'Reserve My Spot',
+        'msg_success'         => 'Thank you, {first_name} {last_initial}.! Your reservation is confirmed.',
+        'msg_required'        => 'All fields are required.',
+        'msg_invalid_email'   => 'Please enter a valid email address.',
+        'msg_error'           => 'Something went wrong. Please try again.',
+    ];
+    $saved = get_option( 'gr_texts', [] );
+    return wp_parse_args( $saved, $defaults );
+}
+
+// ---------------------------------------------------------------------------
 // Admin menu page (optional overview of all reservations)
 // ---------------------------------------------------------------------------
 add_action( 'admin_menu', 'gr_admin_menu' );
@@ -335,6 +357,14 @@ function gr_admin_menu() {
         'gr_admin_page',
         'dashicons-calendar-alt',
         30
+    );
+    add_submenu_page(
+        'genesis-reservations',
+        __( 'Text Settings', 'genesis-reservations' ),
+        __( 'Text Settings', 'genesis-reservations' ),
+        'manage_options',
+        'genesis-reservations-texts',
+        'gr_texts_page'
     );
 }
 
@@ -383,6 +413,7 @@ function gr_admin_page() {
 
     $edit_row = isset( $_GET['gr_edit'] ) ? absint( $_GET['gr_edit'] ) : 0;
     $results  = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
     ?>
     <div class="wrap gr-admin-wrap">
         <h1><?php esc_html_e( 'All Reservations', 'genesis-reservations' ); ?></h1>
@@ -450,6 +481,76 @@ function gr_admin_page() {
         <?php else : ?>
             <p><?php esc_html_e( 'No reservations found.', 'genesis-reservations' ); ?></p>
         <?php endif; ?>
+    </div>
+    <?php
+}
+
+// ---------------------------------------------------------------------------
+// Text Settings page
+// ---------------------------------------------------------------------------
+function gr_texts_page() {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    if (
+        isset( $_POST['gr_texts_nonce'] ) &&
+        wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['gr_texts_nonce'] ) ), 'gr_save_texts' )
+    ) {
+        $fields = [
+            'label_first_name', 'label_last_name', 'label_email',
+            'label_time', 'label_place', 'btn_submit',
+            'msg_success', 'msg_required', 'msg_invalid_email', 'msg_error',
+        ];
+        $saved = [];
+        foreach ( $fields as $key ) {
+            $saved[ $key ] = sanitize_text_field( wp_unslash( $_POST[ 'gr_' . $key ] ?? '' ) );
+        }
+        update_option( 'gr_texts', $saved );
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'genesis-reservations' ) . '</p></div>';
+    }
+
+    $t = gr_texts();
+
+    $fields = [
+        'label_first_name'  => 'Form label — First Name',
+        'label_last_name'   => 'Form label — Last Name',
+        'label_email'       => 'Form label — Email',
+        'label_time'        => 'Event meta label — Time',
+        'label_place'       => 'Event meta label — Place',
+        'btn_submit'        => 'Submit button text',
+        'msg_success'       => 'Success message (use {first_name} and {last_initial})',
+        'msg_required'      => 'Error — fields required',
+        'msg_invalid_email' => 'Error — invalid email',
+        'msg_error'         => 'Error — database failure',
+    ];
+    ?>
+    <div class="wrap">
+        <h1><?php esc_html_e( 'Reservation Text Settings', 'genesis-reservations' ); ?></h1>
+        <p><?php esc_html_e( 'Customize all user-facing text displayed by the [reservation] shortcode.', 'genesis-reservations' ); ?></p>
+
+        <form method="post">
+            <?php wp_nonce_field( 'gr_save_texts', 'gr_texts_nonce' ); ?>
+            <table class="form-table" role="presentation">
+                <?php foreach ( $fields as $key => $label ) : ?>
+                <tr>
+                    <th scope="row">
+                        <label for="gr_<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="text"
+                            id="gr_<?php echo esc_attr( $key ); ?>"
+                            name="gr_<?php echo esc_attr( $key ); ?>"
+                            value="<?php echo esc_attr( $t[ $key ] ); ?>"
+                            class="regular-text"
+                        />
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+            <?php submit_button( __( 'Save Text Settings', 'genesis-reservations' ) ); ?>
+        </form>
     </div>
     <?php
 }
