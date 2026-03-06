@@ -1,0 +1,258 @@
+/* Genesis Reservations – front-end & admin styles */
+
+/* ---- Wrapper ---- */
+.gr-reservation-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    font-family: inherit;
+}
+
+/* ---- Event info block ---- */
+.gr-event-info {
+    background: #f8f9fa;
+    border-left: 4px solid #0073aa;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    border-radius: 0 4px 4px 0;
+}
+
+.gr-event-title {
+    margin: 0 0 0.75rem;
+    font-size: 1.5rem;
+    color: #1d2327;
+}
+
+.gr-event-meta {
+    list-style: none;
+    margin: 0 0 0.75rem;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-size: 0.95rem;
+    color: #50575e;
+}
+
+.gr-meta-label {
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.gr-event-desc {
+    margin: 0;
+    color: #50575e;
+    font-size: 0.95rem;
+}
+
+/* ---- Notices ---- */
+.gr-notice {
+    padding: 0.875rem 1.25rem;
+    border-radius: 4px;
+    margin-bottom: 1.25rem;
+    font-size: 1rem;
+}
+
+.gr-notice--success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.gr-notice--error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+/* ---- Form ---- */
+.gr-form {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 1.75rem;
+}
+
+.gr-field {
+    margin-bottom: 1.25rem;
+}
+
+.gr-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: #1d2327;
+    font-size: 0.95rem;
+}
+
+.gr-field label span {
+    color: #d63638;
+}
+
+.gr-field input[type="text"],
+.gr-field input[type="email"] {
+    display: block;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 1rem;
+    color: #1d2327;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.gr-field input:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+.gr-submit {
+    display: inline-block;
+    background: #0073aa;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.65rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.gr-submit:hover {
+    background: #005a87;
+}
+
+/* ---- Admin panel (front-end) ---- */
+.gr-admin-panel {
+    margin-top: 2.5rem;
+    border-top: 2px solid #dcdcde;
+    padding-top: 1.5rem;
+}
+
+.gr-admin-title {
+    font-size: 1.15rem;
+    color: #1d2327;
+    margin: 0 0 1rem;
+}
+
+.gr-admin-count {
+    font-weight: 400;
+    color: #50575e;
+    font-size: 0.9rem;
+    margin-left: 0.35rem;
+}
+
+.gr-table-wrap {
+    overflow-x: auto;
+}
+
+.gr-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.gr-table th,
+.gr-table td {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid #dcdcde;
+    vertical-align: middle;
+}
+
+.gr-table thead th {
+    background: #f6f7f7;
+    font-weight: 600;
+    color: #1d2327;
+    border-top: 1px solid #dcdcde;
+}
+
+.gr-table tbody tr:hover {
+    background: #f6f7f7;
+}
+
+.gr-edit-row {
+    background: #fff8e5 !important;
+}
+
+/* ---- Inline buttons ---- */
+.gr-actions {
+    white-space: nowrap;
+}
+
+.gr-btn {
+    display: inline-block;
+    padding: 0.3rem 0.65rem;
+    border-radius: 3px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    line-height: 1.5;
+}
+
+.gr-btn--edit {
+    background: #f0f0f1;
+    border-color: #8c8f94;
+    color: #1d2327;
+}
+
+.gr-btn--edit:hover {
+    background: #dcdcde;
+    color: #1d2327;
+}
+
+.gr-btn--delete {
+    background: #fff;
+    border-color: #d63638;
+    color: #d63638;
+    margin-left: 0.3rem;
+}
+
+.gr-btn--delete:hover {
+    background: #d63638;
+    color: #fff;
+}
+
+.gr-btn--save {
+    background: #0073aa;
+    border-color: #0073aa;
+    color: #fff;
+    border: none;
+}
+
+.gr-btn--save:hover {
+    background: #005a87;
+    color: #fff;
+}
+
+.gr-btn--cancel {
+    background: #f0f0f1;
+    border-color: #8c8f94;
+    color: #1d2327;
+    margin-left: 0.3rem;
+}
+
+.gr-inline-edit-form input {
+    padding: 0.3rem 0.5rem;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.gr-no-results {
+    color: #50575e;
+    font-style: italic;
+}
+
+/* ---- Admin page wrap ---- */
+.gr-admin-wrap .gr-table th,
+.gr-admin-wrap .gr-table td {
+    padding: 0.5rem 0.75rem;
+}

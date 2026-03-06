@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    # Copy plugin files to WordPress plugins directory
+    - export PLUGIN_DIR=$HOME/public_html/wp-content/plugins/genesis-reservations
+    - mkdir -p $PLUGIN_DIR
+    - cp -r $HOME/repository/genesis-wp-plugin/genesis-reservations.php $PLUGIN_DIR/
+    - cp -r $HOME/repository/genesis-wp-plugin/assets $PLUGIN_DIR/
